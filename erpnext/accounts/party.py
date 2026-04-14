@@ -821,14 +821,16 @@ def get_dashboard_info(party_type, party, loyalty_program=None):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
 
 	doctype = "Sales Invoice" if party_type == "Customer" else "Purchase Invoice"
-
-	companies = frappe.get_all(
+	company_wise_info = []
+	
+	if not frappe.has_permission(doctype):
+		return 	company_wise_info
+	
+	companies = frappe.get_list(
 		doctype, filters={"docstatus": 1, party_type.lower(): party}, distinct=1, fields=["company"]
 	)
 
-	company_wise_info = []
-
-	company_wise_grand_total = frappe.get_all(
+	company_wise_grand_total = frappe.get_list(
 		doctype,
 		filters={
 			"docstatus": 1,
@@ -850,7 +852,7 @@ def get_dashboard_info(party_type, party, loyalty_program=None):
 
 	if party_type == "Customer":
 		loyalty_point_details = frappe._dict(
-			frappe.get_all(
+			frappe.get_list(
 				"Loyalty Point Entry",
 				filters={
 					"customer": party,
